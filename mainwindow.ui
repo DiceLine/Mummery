@@ -117,6 +117,9 @@
      <property name="statusTip">
       <string/>
      </property>
+     <property name="text">
+      <string/>
+     </property>
      <property name="placeholderText">
       <string>Полный путь</string>
      </property>
@@ -209,6 +212,9 @@
      <property name="inputMask">
       <string>HHHHHHHHHHHHHHHH</string>
      </property>
+     <property name="text">
+      <string/>
+     </property>
      <property name="placeholderText">
       <string>Маска размером 8 байт</string>
      </property>
@@ -246,6 +252,9 @@
      <property name="toolTip">
       <string>Например: XOR, AND и т.д.</string>
      </property>
+     <property name="text">
+      <string/>
+     </property>
      <property name="placeholderText">
       <string>Поразрядная операция</string>
      </property>
@@ -263,7 +272,7 @@
       </rect>
      </property>
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;В секундах.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;В секундах. Для указания в милисекундах укажите постфикс ms. Например, 500ms.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="placeholderText">
       <string>Интервал опроса</string>

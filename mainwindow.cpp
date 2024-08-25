@@ -18,16 +18,23 @@ MainWindow::MainWindow(QWidget *parent)
         elementHadError[i] = false;
     }
 
-    lineEditFont = ui->lineEdit_inFile->font();
+    isInFileDeletionON = false;
+    isOutFileCopyingON = false;
+    isOutFileRewritingON = false;
+    isTimerModeON = false;
+
+    lineEditDefaultFont = ui->lineEdit_inFile->font();
 
     ui->lineEdit_interval->hide();
 
     timer = new QTimer(this);
+    timer->callOnTimeout(this, &MainWindow::timerTransformationStream);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete timer;
 }
 
 
@@ -40,7 +47,7 @@ void MainWindow::setLineEditError(QLineEdit* ptr, const bool& status, QString me
     }
 
     ptr->setStyleSheet("");
-    ptr->setFont(lineEditFont);
+    ptr->setFont(lineEditDefaultFont);
     ptr->setStatusTip("");
 }
 
@@ -62,6 +69,12 @@ void MainWindow::on_lineEdit_inFile_editingFinished() {
 
     elementHadError[0] = true;
     setLineEditError(ui->lineEdit_inFile, true, "Недопустимый ввод: Такого файла не существует");
+}
+
+
+void MainWindow::on_lineEdit_otFilePath_editingFinished()
+{
+    outFilePath = ui->lineEdit_otFilePath->text();
 }
 
 
@@ -153,9 +166,9 @@ void MainWindow::on_lineEdit_8BMask_editingFinished()
 
 void MainWindow::on_checkBox_timer_stateChanged(int arg1)
 {
-    isTimerON = arg1;
+    isTimerModeON = arg1;
 
-    if(isTimerON) {
+    if(isTimerModeON) {
         ui->lineEdit_interval->show();
         return;
     }
@@ -198,24 +211,23 @@ void MainWindow::on_lineEdit_interval_editingFinished()
 
 void MainWindow::transformationStream()
 {
-    static QFile file;
-
-
     for(int i = 0; i < ELEMENTS; ++i) {
         if(elementHadError[i]) {
             return;
         }
     }
 
-    file.setFileName(inFileName);
+    static QFile inputFile;
 
-    if(!file.open(QIODeviceBase::ReadOnly)) {
+    inputFile.setFileName(inFileName);
+
+    if(!inputFile.open(QIODeviceBase::ReadOnly)) {
         return;
     }
 
-    data = file.readAll();
+    data = inputFile.readAll();
 
-    file.close();
+    inputFile.close();
 
 
     static qint64 size;
@@ -229,9 +241,8 @@ void MainWindow::transformationStream()
     static QByteArray chunk;
     static QString prefixForAddingMode;
 
-    prefixForAddingMode = "New data block (" + QString::number(QRandomGenerator::global()->generate()) + "):\n";
+    prefixForAddingMode = QString("\nNew data block (") + QString::number(QRandomGenerator::global()->generate()) + "):\n";
 
-    result.clear();
     if(!isOutFileRewritingON && !isOutFileCopyingON) {
         result.append(prefixForAddingMode.toStdString());
     }
@@ -243,6 +254,10 @@ void MainWindow::transformationStream()
 
         iter = 0;
         for(qint8 byte: std::as_const(chunk)) {
+            if(iter >= CHUNK_SIZE) {
+                return;
+            }
+
             switch(operation)
             {
             case NOT: {
@@ -268,14 +283,20 @@ void MainWindow::transformationStream()
             ++iter;
             result.append(resultByte);
         }
+
+        chunk.clear();
     }
 
+    data.clear();
 
-    /*static QRegularExpression expr(R"((\w+(\.\w+)+))");
+    static QFileInfo outFileInfo;
+    static QString resultFilePath;
 
-    if(!outFilePath.contains(expr)) {
-        outFilePath += "/masked_file.txt";
-    }*/
+    outFileInfo.setFile(outFilePath);
+
+    if(outFileInfo.isDir() && !isOutFileCopyingON) {
+        resultFilePath = outFilePath + "\\masked_file.txt";
+    }
 
     static QFile::OpenModeFlag mode;
 
@@ -286,25 +307,41 @@ void MainWindow::transformationStream()
 
     } else if(isOutFileCopyingON) {
         static int k;
-        k = 0;
-        do {
-            outFilePath = "/masked_file(" + QString::number(k++) + ").txt";
-        } while(QFile::exists(outFilePath) && k < 1000);
+        static QString path;
+
+        k = 1;
+        while(k < COPYIES_MAX_VALUE) {
+            path = "masked_file(" + QString::number(k++) + ").txt";
+            if(!QFile::exists(path)) {
+                break;
+            }
+        }
+
+        resultFilePath = outFilePath + '\\' + path;
     }
 
-    file.setFileName(outFilePath);
+    static QFile outputFile;
 
-    if(!file.open(mode)) {
+    outputFile.setFileName(resultFilePath);
+
+    if(!outputFile.open(mode)) {
         return;
     }
 
-    file.write(result);
+    outputFile.write(result);
 
-    file.close();
+    outputFile.close();
+    result.clear();
 
-    if(isInFileDeletionON) {
+    if(isInFileDeletionON && QFile::exists(inFileName)) {
         QFile::remove(inFileName);
     }
+}
+
+
+void MainWindow::timerTransformationStream()
+{
+    transformationStream();
 }
 
 
@@ -318,16 +355,31 @@ void MainWindow::on_pushButton_transform_clicked()
         return;
     }
 
-    if(!isTimerON) {
+    if(
+        ui->lineEdit_8BMask->text().isEmpty() ||
+        ui->lineEdit_inFile->text().isEmpty() ||
+        ui->lineEdit_otFilePath->text().isEmpty() ||
+        ui->lineEdit_operation->text().isEmpty()
+        )
+    {
+        return;
+    }
+
+    on_lineEdit_inFile_editingFinished();
+    on_lineEdit_otFilePath_editingFinished();
+    on_lineEdit_8BMask_editingFinished();
+    on_lineEdit_operation_editingFinished();
+
+    if(!isTimerModeON) {
         transformationStream();
         return;
     }
+
+    on_lineEdit_interval_editingFinished();
 
     ui->groupBox_inFile->setDisabled(true);
     ui->groupBox_otFile->setDisabled(true);
     ui->groupBox_transform->setDisabled(true);
 
-    timer->callOnTimeout(this, &MainWindow::transformationStream);
     timer->start(interval);
 }
-

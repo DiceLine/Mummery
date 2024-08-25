@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QFileInfo>
 #include <QFile>
 #include <QRegularExpression>
 #include <QRandomGenerator>
@@ -41,13 +42,15 @@ private slots:
 
     void on_pushButton_transform_clicked();
 
-    void transformationStream();
+    void on_lineEdit_otFilePath_editingFinished();
+
+    void timerTransformationStream();
 
 private:
     Ui::MainWindow *ui;
 
     // Properties
-    QFont lineEditFont;
+    QFont lineEditDefaultFont;
 
     enum Operation {
         NOT = 0,
@@ -60,6 +63,7 @@ private:
     static const QString op[length];
     static const int ELEMENTS = 5;
     static const int CHUNK_SIZE = 8;
+    static const int COPYIES_MAX_VALUE = 3000;
 
     QTimer*     timer;
     qint32      interval;
@@ -78,9 +82,10 @@ private:
     bool        isInFileDeletionON;
     bool        isOutFileRewritingON;
     bool        isOutFileCopyingON;
-    bool        isTimerON;
+    bool        isTimerModeON;
 
 
     void setLineEditError(QLineEdit* ptr, const bool& status, QString message = "");
+    void transformationStream();
 };
 #endif // MAINWINDOW_H
