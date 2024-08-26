@@ -14,10 +14,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS ui)
 
 # build каталог
-set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build")
+#set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build")
 
 # Удаление содержимого каталога
-file(REMOVE_RECURSE ${BUILD_DIR}/**)
+#file(REMOVE_RECURSE ${BUILD_DIR}/**)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets LinguistTools)
