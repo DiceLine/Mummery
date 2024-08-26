@@ -1,5 +1,5 @@
-#include "mainwindow.h"
-#include "./ui_mainwindow.h"
+#include "../headers/mainwindow.h"
+#include "ui/ui_mainwindow.h"
 
 const QString MainWindow::op[length] = {
     "not",

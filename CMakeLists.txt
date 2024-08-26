@@ -6,27 +6,45 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_AUTOUIC_SEARCH_PATHS ui)
+
+# build каталог
+set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build")
+
+# Удаление содержимого каталога
+file(REMOVE_RECURSE ${BUILD_DIR}/**)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets LinguistTools)
 
 set(TS_FILES Mummery_ru_RU.ts)
 
+set(UI_FILES
+    ui/mainwindow.ui
+)
+
 set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
-        ${TS_FILES}
+    src/main.cpp
+    src/mainwindow.cpp
+    ${TS_FILES}
+)
+
+set(PROJECT_HEADERS
+    headers/mainwindow.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Mummery
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        ${PROJECT_HEADERS}
         Resources.qrc
+        ${UI_FILES}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Mummery APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -38,12 +56,14 @@ else()
     if(ANDROID)
         add_library(Mummery SHARED
             ${PROJECT_SOURCES}
+            ${PROJECT_HEADERS}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(Mummery
             ${PROJECT_SOURCES}
+            ${PROJECT_HEADERS}
         )
     endif()
 

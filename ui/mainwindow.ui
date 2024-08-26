@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="Resources.qrc">
-    <normaloff>:/new/prefix1/icons8-mask-60.png</normaloff>:/new/prefix1/icons8-mask-60.png</iconset>
+    <normaloff>:/new/prefix1/resources/icons8-mask-60.png</normaloff>:/new/prefix1/resources/icons8-mask-60.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QGroupBox" name="groupBox_inFile">
@@ -298,7 +298,7 @@
     </property>
     <property name="icon">
      <iconset resource="Resources.qrc">
-      <normaloff>:/new/prefix2/icons8-help-32.png</normaloff>:/new/prefix2/icons8-help-32.png</iconset>
+      <normaloff>:/new/prefix2/resources/icons8-help-32.png</normaloff>:/new/prefix2/resources/icons8-help-32.png</iconset>
     </property>
    </widget>
    <addaction name="menu"/>
