@@ -1,6 +1,8 @@
 #include "../headers/mainwindow.h"
 #include "ui/ui_mainwindow.h"
 
+#define DEBUG_M
+
 const QString MainWindow::op[length] = {
     "not",
     "and",
@@ -22,6 +24,13 @@ MainWindow::MainWindow(QWidget *parent)
     isOutFileCopyingON = false;
     isOutFileRewritingON = false;
     isTimerModeON = false;
+
+#ifdef DEBUG_M
+    ui->lineEdit_inFile->setText("input.txt");
+    ui->lineEdit_otFilePath->setText("D:\\MyPrograms\\C++\\Mummery\\build\\Desktop_C-Debug");
+    ui->lineEdit_8BMask->setText("FFFFFFFFFFFFFFFF");
+    ui->lineEdit_operation->setText("AND");
+#endif
 
     lineEditDefaultFont = ui->lineEdit_inFile->font();
 
@@ -105,7 +114,7 @@ void MainWindow::on_checkBox_copying_stateChanged(int arg1)
 
 void MainWindow::on_lineEdit_operation_editingFinished()
 {
-    static QString str;
+    QString str;
 
     str = ui->lineEdit_operation->text();
 
@@ -133,10 +142,10 @@ void MainWindow::on_lineEdit_operation_editingFinished()
 
 void MainWindow::on_lineEdit_8BMask_editingFinished()
 {
-    static bool         status;
-    static qint8        value;
-    static qint32       size;
-    static QString      input;
+    bool         status;
+    qint8        value;
+    qint32       size;
+    QString      input;
 
     input = ui->lineEdit_8BMask->text();
 
@@ -150,8 +159,8 @@ void MainWindow::on_lineEdit_8BMask_editingFinished()
 
     size = input.size();
 
-    for(int i = 0; i < size; ++i) {
-        value = input.mid(i, 2).toInt(&status, 16);
+    for(int i = 0, k = 0; i < CHUNK_SIZE && k < size; ++i, k += 2) {
+        value = input.mid(k, 2).toInt(&status, 16);
         if(!status) {
             elementHadError[2] = true;
             setLineEditError(ui->lineEdit_8BMask, true);
@@ -179,9 +188,9 @@ void MainWindow::on_checkBox_timer_stateChanged(int arg1)
 
 void MainWindow::on_lineEdit_interval_editingFinished()
 {
-    static bool     success;
-    static QString  input;
-    static qint32   value;
+    bool     success;
+    QString  input;
+    qint32   value;
 
     input = ui->lineEdit_interval->text();
 
@@ -217,7 +226,8 @@ void MainWindow::transformationStream()
         }
     }
 
-    static QFile inputFile;
+    QFile inputFile;
+    QByteArray data;
 
     inputFile.setFileName(inFileName);
 
@@ -229,17 +239,13 @@ void MainWindow::transformationStream()
 
     inputFile.close();
 
-
-    static qint64 size;
+    qint64 size;
+    QString prefixForAddingMode;
 
     size = data.size();
 
-    if(size % CHUNK_SIZE != 0) {
-        return;
-    }
-
-    static QByteArray chunk;
-    static QString prefixForAddingMode;
+    QByteArray chunk;
+    QByteArray result;
 
     prefixForAddingMode = QString("\nNew data block (") + QString::number(QRandomGenerator::global()->generate()) + "):\n";
 
@@ -247,10 +253,18 @@ void MainWindow::transformationStream()
         result.append(prefixForAddingMode.toStdString());
     }
 
-    for(qint64 i = 0; i < size; i += CHUNK_SIZE) {
-        chunk = data.mid(i, CHUNK_SIZE);
+    int remainder;
 
-        static qint8 resultByte, iter;
+    remainder = size % CHUNK_SIZE;
+
+    for(qint64 i = 0; i < size; i += CHUNK_SIZE) {
+        if(i + remainder != size) {
+            chunk = data.mid(i, CHUNK_SIZE);
+        } else {
+            chunk = data.mid(i, remainder);
+        }
+
+        qint8 resultByte, iter;
 
         iter = 0;
         for(qint8 byte: std::as_const(chunk)) {
@@ -289,8 +303,8 @@ void MainWindow::transformationStream()
 
     data.clear();
 
-    static QFileInfo outFileInfo;
-    static QString resultFilePath;
+    QFileInfo outFileInfo;
+    QString resultFilePath;
 
     outFileInfo.setFile(outFilePath);
 
@@ -298,7 +312,7 @@ void MainWindow::transformationStream()
         resultFilePath = outFilePath + "\\masked_file.txt";
     }
 
-    static QFile::OpenModeFlag mode;
+    QFile::OpenModeFlag mode;
 
     mode = QFile::WriteOnly;
 
@@ -306,8 +320,8 @@ void MainWindow::transformationStream()
         mode = QFile::Append;
 
     } else if(isOutFileCopyingON) {
-        static int k;
-        static QString path;
+        int k;
+        QString path;
 
         k = 1;
         while(k < COPYIES_MAX_VALUE) {
@@ -320,7 +334,7 @@ void MainWindow::transformationStream()
         resultFilePath = outFilePath + '\\' + path;
     }
 
-    static QFile outputFile;
+    QFile outputFile;
 
     outputFile.setFileName(resultFilePath);
 

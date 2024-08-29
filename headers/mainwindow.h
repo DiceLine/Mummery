@@ -71,9 +71,6 @@ private:
     qint8       mask[CHUNK_SIZE];
     Operation   operation;
 
-    QByteArray  data;
-    QByteArray  result;
-
     QString     inFileName;
     QString     outFilePath;
 
